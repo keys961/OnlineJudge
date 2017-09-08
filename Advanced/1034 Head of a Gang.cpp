@@ -1,125 +1,121 @@
-#include <iostream>
 #include <cstdio>
-#include <vector>
-#include <map>
-#include <set>
 #include <cstring>
+#include <set>
 
 using namespace std;
 
-int disjointSet[20000];//Disjoint Set
-int countMin[20000] = {0}; //Count Minute
-map<int, int> result;
+int disjointSet[19000];
+int weight[19000];
 
-int hash(char* name);
-char* hashRev(int id);
-//Disjoint Set
-int find(int id);
-void join(int idA, int idB, int minute);
-//Solve
-void input(int n);
-void solve(int k);
-
-int main(int argc, char const *argv[])
+struct Result
 {
-	int n, k;
-	scanf("%d %d", &n, &k);
-	input(n);
-    solve(k);
-	return 0;
+	int id;
+	int gunNum;
+	Result(int id, int gunNum)
+	{
+		this->id = id;
+		this->gunNum = gunNum;
+	}
+
+	friend bool operator < (const Result& a, const Result& b)
+	{
+		return a.id < b.id;
+	}
+};
+
+int hashcode(char* name)
+{
+	return (name[0] - 'A') * 26 * 26 +
+		(name[1] - 'A') * 26 + name[2] - 'A';
 }
 
-int hashTo(char* name)
+char* getName(int hashCode)
 {
-    return (name[2] - 'A') + 
-        (name[1] - 'A') * 26 + 
-        (name[0] - 'A') * 26 * 26;
-}
-
-char* hashRev(int id)
-{
-    char* name = new char[4];
-    name[3] = 0;
-    int i = 2;
-    while(i >= 0)
-    {
-        name[i--] = id % 26 + 'A';
-        id /= 26;
-    }
-    return name;
+	char* name = new char[4];
+	for (int i = 2; i >= 0; i--)
+	{
+		name[i] = 'A' + hashCode % 26;
+		hashCode /= 26;
+	}
+	name[3] = 0;
+	return name;
 }
 
 int find(int id)
 {
-    while(disjointSet[id] >= 0)
-        id = disjointSet[id];
-    return id;
+	while (disjointSet[id] >= 0)
+		id = disjointSet[id];
+	return id;
 }
 
-void join(int idA, int idB, int minute)
+void setUnion(int idA, int idB)
 {
-    int idA2 = find(idA);
-    int idB2 = find(idB);
-    if(idA2 != idB2)
-    {
-        if(disjointSet[idA2] < disjointSet[idB2])
-        {
-            disjointSet[idA2] += disjointSet[idB2];
-            disjointSet[idB2] = idA2;
-        }
-        else
-        {
-            disjointSet[idB2] += disjointSet[idA2];
-            disjointSet[idA2] = idB2;
-        }
-    }
-    countMin[idA] += minute;
-    countMin[idB] += minute;
+	int headA = find(idA);
+	int headB = find(idB);
+	if (headA == headB)
+		return;
+	if (disjointSet[headA] < disjointSet[headB])
+	{
+		disjointSet[headA] += disjointSet[headB];
+		disjointSet[headB] = headA;
+	}
+	else
+	{
+		disjointSet[headB] += disjointSet[headA];
+		disjointSet[headA] = headB;
+	}
 }
 
-void input(int n)
+void findHead(int k);
+
+int main()
 {
-    for(int i = 0; i < 20000; i++)
-        disjointSet[i] = -1;
-    char name1[4] = {0};
-    char name2[4] = {0};
-    int minute;
-    for(int i = 0; i < n; i++)
-    {
-        scanf("%s %s %d", name1, name2, &minute);
-        join(hashTo(name1), hashTo(name2), minute);
-    }
+	int n, k, time;
+	char name1[4], name2[4];
+	scanf("%d %d", &n, &k);
+	memset(disjointSet, -1, sizeof(disjointSet));
+	for (int i = 0; i < n; i++)
+	{
+		scanf("%s %s %d", name1, name2, &time);
+		int id1 = hashcode(name1);
+		int id2 = hashcode(name2);
+		weight[id1] += time;
+		weight[id2] += time;
+		setUnion(id1, id2);
+	}
+	findHead(k);
+	return 0;
 }
 
-void solve(int k)
+void findHead(int k)
 {
-    //int count = 0;
-    for(int i = 0; i < 20000; i++)
-    {
-        if(disjointSet[i] < -2)//Find, i is set
-        {
-            //count++;
-            int minute = 0;
-            int maxMin = 0;
-            int maxId;
-            for(int j = 0; j < 20000; j++)
-            {
-                if(find(j) == i)
-                {
-                    minute += countMin[j];
-                    if(countMin[j] > maxMin)
-                    {
-                        maxMin = countMin[j];
-                        maxId = j;
-                    }
-                }
-            }
-            if(minute > 2 * k)
-                result[maxId] = -disjointSet[i];
-        }
-    }
-    printf("%d\n", result.size());
-    map<int, int>::iterator it = result.begin();
-    for(; it != result.end(); it++)
-        printf("%s %d\n", hashRev(it->first), it->second);
+	set<Result> res;
+	for (int i = 0; i < 19000; i++)
+	{
+		int id, headId;
+		int totalMin = 0;
+		if (disjointSet[i] < -2)
+		{
+			headId = i;
+			for (int j = 0; j < 19000; j++)
+			{
+				if (find(j) == i)
+				{
+					totalMin += weight[j];
+					if (weight[headId] < weight[j])
+						headId = j;
+				}
+			}
+			if (totalMin > 2 * k)
+				res.insert(Result(headId, -disjointSet[i]));
+		}
+	}
+	if (res.size() == 0)
+		printf("0\n");
+	else
+	{
+		printf("%d\n", res.size());
+		for (auto it = res.begin(); it != res.end(); it++)
+			printf("%s %d\n", getName(it->id), it->gunNum);
+	}
 }

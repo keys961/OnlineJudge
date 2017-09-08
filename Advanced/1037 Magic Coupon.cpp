@@ -1,51 +1,58 @@
-#include <stdio.h>
-#include <stdlib.h>
-//Greedy Algorithm
+#include <cstdio>
+#include <algorithm>
+
 using namespace std;
 
-int coupon[100000] = {0,};
-int product[100000] = {0,};
+long long coupons[100000];
+long long products[100000];
 
-int solve(int NC, int NP);
-int compare(const void* a , const void *b)
+bool compare(int a, int b)
 {
-	return *(int*)b - *(int*)a;
+	return a > b;
 }
 
-int main(int argc, char const *argv[])
+long long getMaxProfit(int nc, int np)
 {
-	int NC, NP;
-	scanf("%d", &NC);
-	for(int i = 0; i < NC; i++)
-		scanf("%d", &coupon[i]);
-	scanf("%d", &NP);
-	for(int i = 0; i < NP; i++)
-		scanf("%d", &product[i]);
-	printf("%d\n", solve(NC, NP));
+	int i = 0, j = 0;
+	int ir = nc - 1, jr = np - 1;
+	long long profit = 0;
+	while (i < nc && j < np)
+	{
+		if (coupons[i] * products[j] > 0)
+		{
+			profit += coupons[i] * products[j];
+			i++; j++;
+		}
+		else
+			break;
+	}
+	while (ir >= i && jr >= j)
+	{
+		if (coupons[ir] * products[jr] > 0)
+		{
+			profit += coupons[ir] * products[jr];
+			ir--; jr--;
+		}
+		else
+			break;
+	}
+	return profit;
+}
+
+int main()
+{
+	int nc, np;
+	scanf("%d", &nc);
+	for (int i = 0; i < nc; i++)
+		scanf("%lld", &coupons[i]);
+	scanf("%d", &np);
+	for (int i = 0; i < np; i++)
+		scanf("%lld", &products[i]);
+
+	sort(coupons, coupons + nc, compare);
+	sort(products, products + np, compare);
+
+	printf("%ld\n", getMaxProfit(nc, np));
+
 	return 0;
-}
-
-int solve(int NC, int NP)
-{
-	qsort(coupon, NC, sizeof(int), compare);
-	qsort(product, NP, sizeof(int), compare);
-
-	int res = 0;
-	int frontC = 0, frontP = 0;
-	int tailC = NC - 1, tailP = NP - 1;
-	while(frontC < NC && frontP < NP)
-	{
-		if(coupon[frontC] * product[frontP] > 0)
-			res += coupon[frontC++] * product[frontP++];
-		else 
-			break;
-	}
-	while(tailC >= frontC && tailP >= frontP)
-	{
-		if(coupon[tailC] * product[tailP] > 0)
-			res += coupon[tailC--] * product[tailP--];
-		else 
-			break;
-	}
-	return res;
 }
