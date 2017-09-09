@@ -1,117 +1,63 @@
-#include <iostream>
-#include <cstring>
-#include <cstdlib>
 #include <cstdio>
-#include <vector>
 #include <set>
+#include <vector>
+#include <queue>
 #include <algorithm>
+
 using namespace std;
+
+vector< set<long long> > sets;
+
+double getSimilarity(int id1, int id2);
 
 int main()
 {
-	int n;
-	scanf("%d",&n);
-	vector<set<int> >S(n);
-	for(int i=0;i<n;i++)
+	int n, m;
+	long long val;
+	scanf("%d", &n);
+	for (int i = 0; i < n; i++)
 	{
-		int m;
-		scanf("%d",&m);
-		for(int j=0;j<m;j++)
+		set<long long> newSet;
+		scanf("%d", &m);
+		for (int j = 0; j < m; j++)
 		{
-			int a;
-			scanf("%d",&a);
-			S[i].insert(a);
+			scanf("%lld", &val);
+			if (newSet.find(val) == newSet.end())
+				newSet.insert(val);
 		}
+		sets.push_back(newSet);
 	}
 	int k;
-	scanf("%d",&k);
-	for(int i=0;i<k;i++)
+	scanf("%d", &k);
+	for (int i = 0; i < k; i++)
 	{
-		int x,y;
-		scanf("%d %d",&x,&y);
-		set<int>u;
-		set_intersection(S[x-1].begin(),S[x-1].end(),S[y-1].begin(),S[y-1].end(),inserter(u,u.begin()));
-		double res=u.size()*100.0/(S[x-1].size()+S[y-1].size()-u.size());
-		printf("%.1f\%\n",res);
+		int id1, id2;
+		scanf("%d %d", &id1, &id2);
+		printf("%.1f%%\n", getSimilarity(id1, id2));
 	}
 	return 0;
 }
 
-/* JAVA CODE */
-/*
+double getSimilarity(int id1, int id2)
+{
+	int countSame = 0;
+	auto it1 = sets[id1 - 1].begin();
+	auto it2 = sets[id2 - 1].begin();
 
-
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Scanner;
-
-
-public class Main {
-	
-	static Scanner in = new Scanner(System.in);
-	
-	public static void main(String[] args) 
+	while (it1 != sets[id1 - 1].end() && it2 != sets[id2 - 1].end())
 	{
-		int N, K;
-		
-		N = in.nextInt();
-		
-		LinkedList<HashSet<Integer>> setList = new LinkedList<HashSet<Integer>>();
-		for(int i = 0; i < N; i++)
-			setList.add(new HashSet<Integer>());
-		
-		input(setList, N);
-		
-		K = in.nextInt();
-		
-		query(setList, K);
-		
-	}
-	
-	public static void input(LinkedList<HashSet<Integer>> setList, int N)
-	{
-		int M;
-		for(int i = 0; i < N; i++)
+		if (*it1 < *it2)
+			it1++;
+		else if (*it1 > *it2)
+			it2++;
+		else
 		{
-			M = in.nextInt();
-			for(int j = 0; j < M; j++)
-				setList.get(i).add(in.nextInt());
+			countSame++;
+			it2++;
+			it1++;
 		}
 	}
-	
-	public static void query(LinkedList<HashSet<Integer>> setList, int K)
-	{
-		int set1, set2;
-		int Nc, Nt;
-		HashSet<Integer> union = new HashSet<Integer>(),
-				intersection = new HashSet<Integer>();
-		
-		for(int i = 0; i < K; i++)
-		{
-			set1 = in.nextInt();
-			set2 = in.nextInt();
-			union.clear();
-			union.addAll(setList.get(set1 - 1));
-			union.addAll(setList.get(set2 - 1));
-			
-			intersection.clear();
-			intersection.addAll(setList.get(set1 - 1));
-			intersection.retainAll(setList.get(set2 - 1));
-			
-			Nc = intersection.size();
-			Nt = union.size();
-			
-			System.out.printf("%.1f%%\n", Nc * 1.0 / Nt * 100.0);
-		}
-	}
+
+	return countSame * 100.0 /
+		(sets[id1 - 1].size() + sets[id2 - 1].size() - countSame);
 }
-
-
-
-
-
-
-
-*/
