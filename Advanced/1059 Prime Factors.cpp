@@ -1,79 +1,76 @@
-#include <iostream>
-#include <cmath>
 #include <cstdio>
-#include <vector>
-#include <set>
-#include <list>
-#include <algorithm>
 #include <map>
-#include <cstring>
 
 using namespace std;
 
-bool isPrime(int n);
-int nextPrime(int n);
+map<long long, long long> factors;
+
+bool isPrime(long long number);
+long long nextPrime(long long number);
+void getPrimeFactors(long long number);
 
 int main()
 {
-    int  prime = 1;
-    long num;
-    scanf("%ld", &num);
-    map<int, int> factors;
-    if(num == 1 || isPrime(num))
-        printf("%ld=%ld\n", num, num);
-    else
-    {
-        printf("%ld=", num);
-        while(num >= prime)
-        {
-            prime = nextPrime(prime);
-            while (num % prime == 0)
-            {
-                if (factors.find(prime) == factors.end())
-                    factors.insert(pair<int, int>(prime, 1));
-                else
-                    factors[prime]++;
-                num /= prime;
-            }
-        }
-        map<int, int>::iterator it = factors.begin();
+	long long number;
+	scanf("%lld", &number);
 
-        for(; ; )
-        {
-            printf("%d", it->first);
-            if(it->second > 1)
-                printf("^%d", it->second);
-            if(++it != factors.end())
-                printf("*");
-            else
-            {
-                printf("\n");
-                break;
-            }
-        }
-    }
-    return 0;
+	if (number == 1 || isPrime(number)) 
+	{
+		printf("%ld=%ld\n", number, number);
+		return 0;
+	}
+
+	getPrimeFactors(number);
+
+	printf("%ld=", number);
+	auto it = factors.begin();
+	printf("%ld", it->first);
+	if (it->second > 1)
+		printf("^%d", it->second);
+	it++;
+	for (; it != factors.end(); it++)
+	{
+		printf("*%ld", it->first);
+		if (it->second > 1)
+			printf("^%d", it->second);
+	}
+	printf("\n");
+	return 0;
 }
 
-bool isPrime(int n)
+bool isPrime(long long number)
 {
-    if(n == 1)
-        return false;
-    if(n == 2 || n == 3)
-        return true;
-    //int upbound = (int)sqrt(n);
-    for(int i = 2; i * i <= n; i++)
-    {
-        if(n % i == 0)
-            return false;
-    }
-    return true;
+	if (number == 1)
+		return false;
+	if (number == 2 || number == 3)
+		return true;
+
+	for (long long i = 2; i * i <= number; i++)
+		if (number % i == 0)
+			return false;
+	return true;
 }
 
-int nextPrime(int n)
+long long nextPrime(long long number)
 {
-    int res = ++n;
-    while(!isPrime(res++));
-    return --res;
+	if (number == 2)
+		return 3;
+	number += 2;
+	while (!isPrime(number))
+		number += 2;
+	return number;
 }
 
+void getPrimeFactors(long long number)
+{
+	long long factor = 2;
+	while (number > 1)
+	{
+		while (number % factor == 0)
+		{
+			factors[factor]++;
+			number /= factor;
+		}
+		factor = nextPrime(factor);
+	}
+}
