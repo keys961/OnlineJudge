@@ -1,67 +1,61 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
 #include <vector>
 
 using namespace std;
 
-typedef struct result
+struct Pair
 {
-	int begin;
+	int start;
 	int end;
-}Result;
+	Pair(int start, int end)
+	{
+		this->start = start;
+		this->end = end;
+	}
+};
 
-int chain[100001] = {0, };
-int minDiff = 0x7fffffff;
-vector<Result> resList;
+int diamonds[100001];
+int minLost = 0x7fffffff;
+vector<Pair> res;
 
-void input(int n);
-void solve(int n, int m);
+void solve(int n, int cost);
 
-int main(int argc, char const *argv[])
+int main()
 {
-	int N, M;
-	scanf("%d %d", &N, &M);
-	input(N);
-	solve(N, M);
-	for(int i = 0; i < resList.size(); i++)
-		printf("%d-%d\n", resList[i].begin, resList[i].end);
+	int n, val;
+	scanf("%d %d", &n, &val);
+	for (int i = 1; i <= n; i++)
+		scanf("%d", &diamonds[i]);
+
+	solve(n, val);
+	for (int i = 0; i < res.size(); i++)
+		printf("%d-%d\n", res[i].start, res[i].end);
 	return 0;
 }
 
-void input(int n)
+void solve(int n, int cost)
 {
-	for(int i = 1; i <= n; i++)
-		scanf("%d", &chain[i]);
-}
-
-void solve(int n, int m)
-{
-	int front = 1, tail = 1;
-	int sum = 0, diff;
-	Result res;
-	while(tail <= n)
+	int ptr1 = 1, ptr2 = 1;
+	int sum = 0;
+	while (ptr1 <= n)
 	{
-		while(front <= n + 1)
+		while (ptr2 <= n + 1)
 		{
-			if(sum >= m)
+			if (sum >= cost)
 			{
-				//front--;
-				diff = sum - m;
-				res.end = front - 1; res.begin = tail;
-				if(diff < minDiff)
+				int diff = sum - cost;
+				if (diff < minLost)
 				{
-					minDiff = diff;
-					resList.clear();
-					resList.push_back(res);
+					res.clear();
+					minLost = diff;
+					res.push_back(Pair(ptr1, ptr2 - 1));
 				}
-				else if(diff == minDiff)
-					resList.push_back(res);
+				else if(diff == minLost)
+					res.push_back(Pair(ptr1, ptr2 - 1));
 				break;
 			}
-			if(front > n)
-				break;
-			sum += chain[front++];
+			sum += diamonds[ptr2++];
 		}
-		sum -= chain[tail++];
+		sum -= diamonds[ptr1++];
 	}
 }
