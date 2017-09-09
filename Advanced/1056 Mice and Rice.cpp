@@ -1,124 +1,93 @@
-#include <iostream>
 #include <cstdio>
-#include <cstdlib>
 #include <vector>
-#include <cstring>
+#include <algorithm>
 
 using namespace std;
 
-struct Programmer
+struct Player
 {
 	int id;
+	int weight;
 	int score;
+	friend bool operator < (const Player& a, const Player& b)
+	{
+		return a.score < b.score;
+	}
 };
 
-
-Programmer winTree[1000];
-int weight[1000] = {0};
-int ranks[1000] = {0};
-
-int compare(const void* a, const void* b)
+bool compare(Player& a, Player& b)
 {
-	return ((Programmer*)b)->score - ((Programmer*)a)->score;
+	return a.score > b.score;
 }
 
-vector<int> play(int np, int ng);//First round
-void nextTurn(vector<int> *winId, int ng);
-void getRank(int np);
+Player players[1000];
+Player scoreBoard[1000];
+int weight[1000];
+int ranks[1000];
 
-int main(int argc, char const *argv[])
+void getRank(int np, int ng);
+
+int main()
 {
 	int np, ng;
 	scanf("%d %d", &np, &ng);
-	for(int i = 0; i < np; i++)
+	for (int i = 0; i < np; i++)
 	{
 		scanf("%d", &weight[i]);
-		winTree[i].id = i;
-		winTree[i].score = 0;
+		scoreBoard[i].id = i;
+		players[i].score = 0;
 	}
-	vector<int> winId = play(np, ng);
-	nextTurn(&winId, ng);
-	qsort(winTree, np, sizeof(Programmer), compare);
-	getRank(np);
-	for(int i = 0; i < np - 1; i++)
+	for (int i = 0; i < np; i++)
+		scanf("%d", &players[i].id);
+
+	getRank(np, ng);
+	for (int i = 0; i < np - 1; i++)
 		printf("%d ", ranks[i]);
 	printf("%d\n", ranks[np - 1]);
+
 	return 0;
 }
 
-vector<int> play(int np, int ng)
+void getRank(int np, int ng)
 {
-	int p = np;
-	int id;
-	vector<int> winId;
-	while(p > 0)
+	vector<Player> currentRound;
+	vector<Player> nextRound;
+	for (int i = 0; i < np; i++)
 	{
-		int maxWeight = 0;
-		int maxId = -1;
-		for(int i = 0; i < ng && p > 0; i++, p--)
-		{
-			scanf("%d", &id);
-			if(weight[id] > maxWeight)
-			{
-				maxWeight = weight[id];
-				maxId = id;
-			}
-		}
-		winTree[maxId].score += 1;
-		winId.push_back(maxId);
+		players[i].weight = weight[players[i].id];
+		currentRound.push_back(players[i]);
 	}
-	return winId;
-}
-
-void nextTurn(vector<int> *winId, int ng)
-{
-	if(winId->size() == 1)
-		return;
-	int p, g = ng;
-	int maxWeight = 0;
-	int maxId = -1;
-	vector<int> nextTurn;
-	while(winId->size() > 1)
+	while (currentRound.size() > 1) 
 	{
-		p = winId->size();
-		for(int i = 0; i < p && g > 0; i++)
+		nextRound.clear();
+		for (int i = 0; i < currentRound.size(); i += ng)
 		{
-			if(weight[(*winId)[i]] > maxWeight)
+			int maxWeight = -1;
+			int index = -1;
+			for (int j = i; j < i + ng && j < currentRound.size(); j++)
 			{
-				maxWeight = weight[(*winId)[i]];
-				maxId = (*winId)[i];
+				if (currentRound[j].weight > maxWeight)
+				{
+					maxWeight = currentRound[j].weight;
+					index = j;
+				}
 			}
-			if(--g == 0 || i + 1 == p)
-			{
-				g = ng; nextTurn.push_back(maxId);
-				winTree[maxId].score += 1;
-				maxWeight = 0; maxId = -1;
-			}
+			scoreBoard[currentRound[index].id].score++;
+			nextRound.push_back(currentRound[index]);
 		}
-		*winId = nextTurn;
-		nextTurn.clear();
+		currentRound = nextRound;
 	}
-	//winTree[(*winId)[0]].score++;
-}
 
-void getRank(int np)
-{
-	int count = 1;
-	int rank = 0;
-	int maxScore = 1000;
-	for(int i = 0; i < np; i++)
+	sort(scoreBoard, scoreBoard + np, compare);
+	int current = 0;
+	int lastScore = 0x7fffffff;
+	for (int i = 0; i < np; i++)
 	{
-		if(winTree[i].score < maxScore)
+		if (scoreBoard[i].score < lastScore)
 		{
-			maxScore = winTree[i].score;
-			rank += count;
-			ranks[winTree[i].id] = rank;
-			count = 1;
+			current = i + 1;
+			lastScore = scoreBoard[i].score;
 		}
-		else if(winTree[i].score == maxScore)
-		{
-			ranks[winTree[i].id] = rank;
-			count++;
-		}
+		ranks[scoreBoard[i].id] = current;
 	}
 }
