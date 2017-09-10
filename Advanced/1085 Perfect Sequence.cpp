@@ -1,40 +1,40 @@
 #include <cstdio>
+#include <cmath>
 #include <algorithm>
 
 using namespace std;
 
-long sequence[100001]; //0 - n
+long long sequence[100000];
 
-int main(int argc, char const *argv[])
+int getSequenceLength(int n, long long p);
+
+int main()
 {
-    int n, p;
-    scanf("%d %d", &n, &p);
-    for(int i = 0; i < n; i++)
-        scanf("%ld", &sequence[i]);
+    int n;
+    long long p;
+    scanf("%d %lld", &n, &p);
+    for (int i = 0; i < n; i++)
+        scanf("%lld", &sequence[i]);
+
     sort(sequence, sequence + n);
-    int i;
-    int maxLen = 0;
-    for(i = 0; i < n; i++)
-    {
-        if(sequence[n - 1] <= p * sequence[i])
-        {
-            if(maxLen < n - i)
-                maxLen = n - i;
-            break;
-        }
-        int low = i, up = n - 1;
-        int mid;
-        while(low <= up)//Binary Search
-        {
-            mid = (low + up) / 2;
-            if(sequence[mid] > p * sequence[i])
-                up = mid - 1;
-            else
-                low = mid + 1;
-        }
-        if(low - i > maxLen)
-            maxLen = low - i;
-    }
-    printf("%d\n", maxLen);
+    printf("%d\n", getSequenceLength(n, p));
     return 0;
+
+}
+
+int getSequenceLength(int n, long long p)
+{
+    int maxLen = 0;
+    int ptr1 = 0, ptr2 = 0; //2ptr
+    
+    while (ptr2 < n)
+    {
+        while (ptr2 < n && sequence[ptr2] * 1.0 / sequence[ptr1] <= p)
+            ptr2++;
+        int len = ptr2 - ptr1;
+        if (len > maxLen)
+            maxLen = len;
+        ptr1++;
+    }
+    return maxLen;
 }
