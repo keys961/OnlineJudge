@@ -1,112 +1,85 @@
-#include <iostream>
 #include <cstdio>
-#include <vector>
-#include <map>
 #include <cmath>
-#include <cstring>
+#include <vector>
 
 using namespace std;
 
 struct Node
 {
-    int val;
-    int next;
-    bool valid;
+	int val;
+	int nextAddr;
 };
 
-Node linkedList[100000];
-bool visited[100000] = {false};
-bool exist[100000] = {false};
-vector<int> addrSeq;
+Node nodes[100000];
 
-void input(int n);
+bool visited[10001];
+vector<int> duplicationAddrs;
+
+void getDuplication(int startAddr);
+void linkDuplication(int startAddr);
 void traversal(int startAddr);
-void remove(int startAddr);
-void print(int n);
 
-int main(int argc, char const *argv[])
+int main()
 {
-    int startAddr, n;
-    scanf("%d %d", &startAddr, &n);
-    input(n);
-    traversal(startAddr);
-    remove(startAddr);
-    print(n);
-    return 0;
+	int startAddr, n;
+	scanf("%d %d", &startAddr, &n);
+	for (int i = 0; i < n; i++)
+	{
+		int addr, val, next;
+		scanf("%d %d %d", &addr, &val, &next);
+		nodes[addr].val = val;
+		nodes[addr].nextAddr = next;
+	}
+	getDuplication(startAddr);
+	if (!duplicationAddrs.empty())
+		linkDuplication(duplicationAddrs[0]);
+	traversal(startAddr);
+	if (!duplicationAddrs.empty())
+		traversal(duplicationAddrs[0]);
+	return 0;
 }
 
-void input(int n)
+void getDuplication(int startAddr)
 {
-    Node node;
-    int addr;
-    for(int i = 0; i < n; i++)
-    {
-        scanf("%d %d %d", &addr, &node.val, &node.next);
-        node.valid = true;
-        linkedList[addr] = node;
-    }
-    for(int i = 0; i < 100000; i++)
-    {
-        visited[i] = exist[i] = false;
-    }
+	int pre = startAddr;
+	int current = nodes[startAddr].nextAddr;
+	visited[abs(nodes[pre].val)] = true;
+	while (current != -1)
+	{
+		if (!visited[abs(nodes[current].val)])
+		{
+			visited[abs(nodes[current].val)] = true;
+			pre = current;
+			current = nodes[current].nextAddr;
+		}
+		else
+		{
+			nodes[pre].nextAddr = nodes[current].nextAddr;
+			duplicationAddrs.push_back(current);
+			current = nodes[current].nextAddr;
+		}
+	}
+}
+
+void linkDuplication(int startAddr)
+{
+	int current = startAddr;
+	for (int i = 1; i < duplicationAddrs.size(); i++)
+	{
+		nodes[current].nextAddr = duplicationAddrs[i];
+		current = duplicationAddrs[i];
+	}
+	nodes[current].nextAddr = -1;
 }
 
 void traversal(int startAddr)
 {
-    int addr = startAddr;
-    while(addr != -1)
-    {
-        addrSeq.push_back(addr);
-        if(!exist[abs(linkedList[addr].val)])
-            exist[abs(linkedList[addr].val)] = true;
-        else
-            linkedList[addr].valid = false;
-        addr = linkedList[addr].next;
-    }
-}
-
-void remove(int startAddr)
-{
-    int addr = startAddr;
-    int ptr = linkedList[addr].next;
-    int prePtr = addr;
-    int preRemoved = -1;//Pre removed
-    while(ptr != -1)
-    {
-        if(!linkedList[ptr].valid)//delete
-        {
-            linkedList[prePtr].next = linkedList[ptr].next;
-            linkedList[ptr].next = -1;
-            if(preRemoved != -1)
-                linkedList[preRemoved].next = ptr;
-            preRemoved = ptr;
-            ptr = linkedList[prePtr].next;
-        }
-        else
-        {
-            prePtr = ptr;
-            ptr = linkedList[ptr].next;
-        }
-    }
-}
-
-void print(int n)
-{
-    int addr;
-    for(int i = 0; i < n; i++)
-    {
-        addr = addrSeq[i];
-        if(visited[addr])
-            continue;
-        while(addr != -1)
-        {
-            printf("%05d %d ", addr, linkedList[addr].val);
-            if(linkedList[addr].next != -1)
-                printf("%05d\n", linkedList[addr].next);
-            else
-                printf("-1\n");
-            visited[addr] = true;
-            addr = linkedList[addr].next;
-        }
-    }
+	while (startAddr != -1)
+	{
+		if(nodes[startAddr].nextAddr != -1)
+			printf("%05d %d %05d\n", startAddr, nodes[startAddr].val, nodes[startAddr].nextAddr);
+		else
+			printf("%05d %d %d\n", startAddr, nodes[startAddr].val, nodes[startAddr].nextAddr);
+		startAddr = nodes[startAddr].nextAddr;
+	}
 }

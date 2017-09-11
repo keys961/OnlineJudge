@@ -1,140 +1,115 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <vector>
 
-int CmpArray[100]; //Compared Array, Global
-int flag = 0; //1: Insert, 2: Merge
+using namespace std;
 
-void PrintArray(int A[], int N);
-int Compare(int A[], int N);
-void CopyArray(int DstArray[], int SrcArray[], int N);
-void InsertSort(int A[], int N);
-//Merge 1-2-4-...2^n element-sublist, without recursion
-//Guess the length of merged sublist
-void MergeSort(int A[], int N);
-void MergePass(int A[], int temp[], int N, int length);
-void Merge(int A[], int temp[], int leftStart, int rightStart, int rightEnd);
+vector<int> initArray;
+vector<int> cmpArray;
+
+bool isInsertion(vector<int> array);
+void mergeSort(vector<int> array);
+// Merge 1-2-4-...2^n element-sublist, without recursion
+// Guess the length of merged sublist
+void merge(vector<int>& array, int temp[], int leftStart, int rightStart, int rightEnd);
+void mergePass(vector<int>& array, int temp[], int n, int length);
 
 int main()
 {
-	int N, i;
-	int InitArray[100];
-	int A[100];
-	scanf("%d", &N);
-	for(i = 0; i < N; i++)
-		scanf("%d", &InitArray[i]);
-	for(i = 0; i < N; i++)
-		scanf("%d", &CmpArray[i]);
-	CopyArray(A, InitArray, N);
-	MergeSort(A, N);
-	if(flag != 1)
+	int n, val;
+	scanf("%d", &n);
+	for (int i = 0; i < n; i++) 
 	{
-		CopyArray(A, InitArray, N); //If not using insertion sort, it must be merge sort.
-		InsertSort(A, N);
+		scanf("%d", &val);
+		initArray.push_back(val);
+	}
+	for (int i = 0; i < n; i++) 
+	{
+		scanf("%d", &val);
+		cmpArray.push_back(val);
+	}
+	if (!isInsertion(initArray))
+	{
+		printf("Merge Sort\n");
+		mergeSort(initArray);
 	}
 	return 0;
 }
 
-void PrintArray(int A[], int N)
+bool isInsertion(vector<int> array)
 {
-	int i;
-	for(i = 0; i < N - 1; i++)
-		printf("%d ", A[i]);
-	printf("%d\n", A[i]);
-}
-
-int Compare(int A[], int N)
-{
-	int flag = 1;
-	int i;
-	for(i = 0; i < N; i++)
+	int i, j;
+	bool flag = false;
+	for (i = 1; i < array.size(); i++)
 	{
-		if(CmpArray[i] != A[i])
+		int temp = array[i];
+		for (j = i; j > 0; j--)
 		{
-			flag = 0;
-			break;
-		}
-	}
-	return flag;
-}
-
-void CopyArray(int DstArray[], int SrcArray[], int N)
-{
-	int i;
-	for(i = 0; i < N; i++)
-		DstArray[i] = SrcArray[i];
-}
-
-void InsertSort(int A[], int N)
-{
-	int temp, i, j;
-	for(i = 1; i < N; i++)
-	{
-		temp = A[i];
-		for(j = i; j > 0; j--)
-		{
-			if(A[j - 1] > temp)
-				A[j] = A[j - 1];
+			if (temp < array[j - 1])
+				array[j] = array[j - 1];
 			else
-				break; //if break, the pos before it, sublist is sorted
+				break;
 		}
-		A[j] = temp;
-		if(Compare(A, N))
+		array[j] = temp;
+		if (array == cmpArray)
 		{
-			flag = 1;
+			flag = true;
 			printf("Insertion Sort\n");
 			break;
 		}
 	}
-	if(i == N)
-		return;
-	//next iteration
 	i++;
-	temp = A[i];
-	for(j = i; j > 0; j--)
+	if (flag)
 	{
-		if(A[j - 1] > temp)
-			A[j] = A[j - 1];
-		else
-			break; //if break, the pos before it, sublist is sorted
+		int temp = array[i];
+		for (j = i; j > 0; j--)
+		{
+			if (temp < array[j - 1])
+				array[j] = array[j - 1];
+			else
+				break;
+		}
+		array[j] = temp;
+		for (int i = 0; i < array.size() - 1; i++)
+			printf("%d ", array[i]);
+		printf("%d\n", array.back());
 	}
-	A[j] = temp;
-	PrintArray(A, N);
+	return flag;
 }
 
-void MergeSort(int A[], int N)
+void mergeSort(vector<int> array)
 {
-	int length;
-	int* temp = (int*)malloc(sizeof(int) * N);
-	length = 1;
-	while(length < N)
+	int len = 1;
+	int* tempArray = new int[array.size()];
+	while (len < array.size())
 	{
-		MergePass(A, temp, N, length);
-		length *= 2;
-		if(Compare(A, N))
+		mergePass(array, tempArray, array.size(), len);
+		len *= 2;
+		if (array == cmpArray)
 		{
-			printf("Merge Sort\n");
-			if(length < N)
-                MergePass(A, temp, N, length);
-			PrintArray(A, N);
-			flag = 1;
-			break;
+			if(len < array.size())
+				mergePass(array, tempArray, array.size(), len);
+			for (int i = 0; i < array.size() - 1; i++)
+				printf("%d ", array[i]);
+			printf("%d\n", array.back());
 		}
 	}
 }
 
-void MergePass(int A[], int temp[], int N, int length)
+void mergePass(vector<int>& array, int temp[], int n, int length)
 {
 	int i, j;
-	for(i = 0; i <= N - 2 * length; i += 2 * length)
-		Merge(A, temp, i, i + length, i + 2 * length - 1);
-	if(i + length < N)
-		Merge(A, temp, i, i + length, N - 1);
+	for (i = 0; i <= n - 2 * length; i += 2 * length)
+		merge(array, temp, i, i + length, i + 2 * length - 1);
+	if (i + length < n)
+		merge(array, temp, i, i + length, n - 1);
 	else
-		for(j = i; j < N; j++)
-			temp[j] = A[j];
+	{
+		for (j = i; j < n; j++)
+			temp[j] = array[j];
+	}
 }
 
-void Merge(int A[], int temp[], int leftStart, int rightStart, int rightEnd)
+void merge(vector<int>& array, int temp[], int leftStart, int rightStart, int rightEnd)
 {
 	int leftEnd, numElement, tempPtr;
 	int i;
@@ -142,20 +117,19 @@ void Merge(int A[], int temp[], int leftStart, int rightStart, int rightEnd)
 	numElement = rightEnd - leftStart + 1;
 	tempPtr = leftStart;
 
-	while(leftStart <= leftEnd && rightStart <= rightEnd)
+	while (leftStart <= leftEnd && rightStart <= rightEnd)
 	{
-		if(A[leftStart] < A[rightStart])
-			temp[tempPtr++] = A[leftStart++];
+		if (array[leftStart] < array[rightStart])
+			temp[tempPtr++] = array[leftStart++];
 		else
-			temp[tempPtr++] = A[rightStart++];
+			temp[tempPtr++] = array[rightStart++];
 	}
 
-	while(leftStart <= leftEnd)
-		temp[tempPtr++] = A[leftStart++];
-	while(rightStart <= rightEnd)
-		temp[tempPtr++] = A[rightStart++];
+	while (leftStart <= leftEnd)
+		temp[tempPtr++] = array[leftStart++];
+	while (rightStart <= rightEnd)
+		temp[tempPtr++] = array[rightStart++];
 
-	for(i = 0; i < numElement; i++, rightEnd--)
-        A[rightEnd] = temp[rightEnd];
+	for (i = 0; i < numElement; i++, rightEnd--)
+		array[rightEnd] = temp[rightEnd];
 }
-
