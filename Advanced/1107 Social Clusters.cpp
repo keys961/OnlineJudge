@@ -1,101 +1,85 @@
 #include <cstdio>
-#include <algorithm>
-#include <map>
+#include <cstring>
 #include <vector>
+#include <map>
+#include <algorithm>
 
 using namespace std;
 
-int disjointSet[1001] = {-1};
-map< int, vector<int> > hobbies; //ID -> Hobbies
-vector<int> peopleOfClusters;
+int disjointSet[1001];
 
-void input(int n);
+map< int, vector<int> > personHobby; //P - H
+map< int, vector<int> > hobbyPerson; // H - P
 
-int find(int i);
-void link(int a, int b);
-int solve(int n);
-
-int main(int argc, char const *argv[])
+int setFind(int person);
+void setUnion(int a, int b);
+bool compare(int a, int b)
 {
-    int n;
-    scanf("%d", &n);
-    input(n);
-    printf("%d\n", solve(n));
-    for(int i = peopleOfClusters.size() - 1; i > 0; i--)
-        printf("%d ", peopleOfClusters[i]);
-    printf("%d\n", peopleOfClusters[0]);
-    return 0;
+	return a > b;
 }
 
-int find(int i)
+vector<int> res;
+
+int main()
 {
-    while(disjointSet[i] >= 0)
-        i = disjointSet[i];
-    return i;
+	int n;
+	scanf("%d", &n);
+	memset(disjointSet, -1, sizeof(disjointSet));
+	for (int i = 1; i <= n; i++)
+	{
+		int k, val;
+		scanf("%d:", &k);
+		for (int j = 0; j < k; j++)
+		{
+			scanf("%d", &val);
+			personHobby[i].push_back(val);
+			hobbyPerson[val].push_back(i);
+		}
+	}
+	for (int i = 1; i <= n; i++)
+	{
+		for (int j = 0; j < personHobby[i].size(); j++)
+		{
+			for (int k = 0; k < hobbyPerson[personHobby[i][j]].size(); k++)
+				setUnion(i, hobbyPerson[personHobby[i][j]][k]);
+		}
+	}
+	for (int i = 1; i <= n; i++)
+	{
+		if (disjointSet[i] < 0)
+			res.push_back(-disjointSet[i]);
+	}
+	sort(res.begin(), res.end(), compare);
+	printf("%d\n", res.size());
+	for (int i = 0; i < res.size() - 1; i++)
+		printf("%d ", res[i]);
+	printf("%d\n", res.back());
+	return 0;
 }
 
-void link(int a, int b)
+int setFind(int person)
 {
-    int rootA = find(a);
-    int rootB = find(b);
-    if(rootA == rootB)
-        return;
-    if(disjointSet[rootA] < disjointSet[rootB])
-    {
-        disjointSet[rootA] += disjointSet[rootB];
-        disjointSet[rootB] = rootA;
-    }
-    else
-    {
-        disjointSet[rootB] += disjointSet[rootA];
-        disjointSet[rootA] = rootB;
-    }
+	while (disjointSet[person] >= 0)
+		person = disjointSet[person];
+	return person;
 }
 
-void input(int n)
+void setUnion(int a, int b)
 {
-    for(int i = 0; i <= n; i++)
-        disjointSet[i] = -1;
-    int hobby, numOfHobbies;
-    for(int i = 1; i <= n; i++)//i = id
-    {
-        scanf("%d:", &numOfHobbies);
-        for(int j = 0; j < numOfHobbies; j++)
-        {
-            scanf("%d", &hobby);
-            hobbies[i].push_back(hobby);
-        }
-        // Link
-    }
-    for(int i = 1; i <= n; i++)
-    {
-        for(int j = 0; j < numOfHobbies; j++)
-        {
-            for(int k = 1; k <= n; k++)//k - opp id
-            {
-                if(k == i)
-                    continue;
-                for(int l = 0; l < hobbies[k].size(); l++)
-                {
-                    if(hobbies[i][j] == hobbies[k][l])
-                    {
-                        //link
-                        link(i, k);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-}
+	int p1 = setFind(a);
+	int p2 = setFind(b);
 
-int solve(int n)
-{
-    for(int i = 1; i <= n; i++)
-    {
-        if(disjointSet[i] < 0)
-            peopleOfClusters.push_back(-disjointSet[i]);
-    }
-    sort(peopleOfClusters.begin(), peopleOfClusters.end());
-    return peopleOfClusters.size();
+	if (p1 == p2)
+		return;
+
+	if (disjointSet[p1] < disjointSet[p2])
+	{
+		disjointSet[p1] += disjointSet[p2];
+		disjointSet[p2] = p1;
+	}
+	else
+	{
+		disjointSet[p2] += disjointSet[p1];
+		disjointSet[p1] = p2;
+	}
 }
