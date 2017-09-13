@@ -2,86 +2,96 @@
 
 using namespace std;
 
-int preorder[30];
-int postorder[30];
-
-int inorder1[30];//Pick only 2 possible solution
-int inorder2[30];
-
-void input(int n);
-
-void buildTreeFromPre(int preLeft, int preRight, int postLeft, int inLeft);
-void buildTreeFromPost(int postLeft, int postRight, int preRight, int inRight);
-bool check(int n);
-
-int main(int argc, char const *argv[])
+struct TreeNode
 {
-    int n;
-    scanf("%d", &n);
-    input(n);
-    buildTreeFromPre(0, n - 1, 0, 0);
-    buildTreeFromPost(0, n - 1, n - 1, n - 1);
-    if(check(n))
-        printf("Yes\n");
-    else
-        printf("No\n");
-    for(int i = 0; i < n - 1; i++)
-        printf("%d ", inorder1[i]);
-    printf("%d\n", inorder1[n - 1]);
-    return 0;
+	int val;
+	TreeNode* left;
+	TreeNode* right;
+	TreeNode(int val) : left(0), right(0) { this->val = val; }
+};
+
+int preOrder[30];
+int postOrder[30];
+vector<int> inOrder1;
+vector<int> inOrder2;
+
+TreeNode* build1(int preStart, int preEnd, int postStart, int postEnd);
+TreeNode* build2(int preStart, int preEnd, int postStart, int postEnd);
+void traversal(TreeNode* tree, int id);
+
+int main()
+{
+	int n;
+	scanf("%d", &n);
+	for (int i = 0; i < n; i++)
+		scanf("%d", &preOrder[i]);
+	for (int i = 0; i < n; i++)
+		scanf("%d", &postOrder[i]);
+
+	TreeNode* tree1 = build1(0, n - 1, 0, n - 1);
+	TreeNode* tree2 = build2(0, n - 1, 0, n - 1);
+	traversal(tree1, 1);
+	traversal(tree2, 2);
+	if (inOrder1 == inOrder2)
+		printf("Yes\n");
+	else
+		printf("No\n");
+	for (int i = 0; i < inOrder1.size() - 1; i++)
+		printf("%d ", inOrder1[i]);
+	printf("%d\n", inOrder1.back());
+	return 0;
 }
 
-void input(int n)
+TreeNode* build1(int preStart, int preEnd, int postStart, int postEnd)
 {
-    for(int i = 0; i < n; i++)
-        scanf("%d", &preorder[i]);
-    for(int i = 0; i < n; i++)
-        scanf("%d", &postorder[i]);
+	if (preStart > preEnd)
+		return nullptr;
+	if (preStart == preEnd)
+		return new TreeNode(preOrder[preStart]);
+
+	TreeNode* root = new TreeNode(preOrder[preStart]);
+	int leftRoot = preOrder[preStart + 1];
+	int i = postStart;
+	for (; i <= postEnd; i++)
+	{
+		if (postOrder[i] == leftRoot)
+			break;
+	}
+	int leftNum = i - postStart + 1;
+	root->left = build1(preStart + 1, preStart + leftNum, postStart, postStart + leftNum - 1);
+	root->right = build1(preStart + leftNum + 1, preEnd, postStart + leftNum, postEnd - 1);
+	return root;
 }
 
-void buildTreeFromPre(int preLeft, int preRight, int postLeft, int inLeft)
+TreeNode* build2(int preStart, int preEnd, int postStart, int postEnd)
 {
-    //base
-    if(preLeft > preRight)
-        return;
-    if(preLeft == preRight)
-    {
-        inorder1[inLeft] = preorder[preLeft];
-        return;
-    }
+	if (postStart > postEnd)
+		return nullptr;
+	if (postStart == postEnd)
+		return new TreeNode(postOrder[postEnd]);
 
-    int rootIndex = preLeft;
-    int leftNum = 0;
-    for(; preorder[rootIndex + 1] != postorder[postLeft + leftNum]; leftNum++);
-    inorder1[inLeft + leftNum + 1] = preorder[rootIndex];
-    buildTreeFromPre(preLeft + 1, preLeft + 1 + leftNum, postLeft, inLeft);
-    buildTreeFromPre(preLeft + 2 + leftNum, preRight, 1 + leftNum + postLeft, inLeft + leftNum + 2);
+	TreeNode* root = new TreeNode(postOrder[postEnd]);
+	int rightRoot = postOrder[postEnd - 1];
+	int i;
+	for (i = preStart + 1; i <= preEnd; i++)
+	{
+		if (preOrder[i] == rightRoot)
+			break;
+	}
+	int leftNum = i - preStart - 1;
+	root->left = build2(preStart + 1, preStart + leftNum, postStart, postStart + leftNum - 1);
+	root->right = build2(preStart + leftNum + 1, preEnd, postStart + leftNum, postEnd - 1);
+	return root;
 }
 
-void buildTreeFromPost(int postLeft, int postRight, int preRight, int inRight)
+void traversal(TreeNode* tree, int id)
 {
-    if(postLeft > postRight)
-        return;
-    if(postLeft == postRight)
-    {
-        inorder2[inRight] = postorder[postLeft];
-        return;
-    }
-
-    int rootIndex = postRight;
-    int rightNum = 0;
-    for(; postorder[postRight - 1] != preorder[preRight - rightNum]; rightNum++);
-    inorder2[inRight - rightNum - 1] = postorder[rootIndex];
-    buildTreeFromPost(postLeft, postRight - 2 - rightNum, preRight - 1 - rightNum, inRight - rightNum - 2);
-    buildTreeFromPost(postRight - 1 - rightNum, postRight - 1, preRight, inRight);
-}
-
-bool check(int n)
-{
-    for(int i = 0; i < n; i++)
-    {
-        if(inorder1[i] != inorder2[i])
-            return false;
-    }
-    return true;
+	if (tree == nullptr)
+		return;
+	traversal(tree->left, id);
+	if (id == 1)
+		inOrder1.push_back(tree->val);
+	else
+		inOrder2.push_back(tree->val);
+	traversal(tree->right, id);
 }
