@@ -1,41 +1,69 @@
-public class Solution
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+class Solution 
 {
-    private TreeNode helper(TreeNode node, int offset)
-    {
-        if(node == null)
-            return null;
-
-        TreeNode root = new TreeNode(node.val + offset);
-        root.left = helper(node.left, offset);
-        root.right = helper(node.right, offset);
-        return root;
-    }
-
     public List<TreeNode> generateTrees(int n)
     {
-        List<TreeNode>[] resultList = new List[n + 1];
-        resultList[0] = new ArrayList<>();
+        // List<TreeNode>[][] dp = new List<>[][];     
         if(n == 0)
-            return resultList[0];
+            return new ArrayList<TreeNode>();
+        List<TreeNode>[][] dp = (List<TreeNode>[][])new ArrayList[n + 1][n + 1];
 
-        resultList[0].add(null);
-        for(int i = 1; i <= n; i++) // i : Number of nodes in the tree
+        for(int step = 0; step < n; step++)
         {
-            resultList[i] = new ArrayList<>();
-            for(int j = 0; j < i; j++) //j + 1: Root, j: left node number
+            for(int i = 1; i <= n - step; i++)
             {
-                for(TreeNode leftTree : resultList[j])
+                dp[i][i + step] = new ArrayList<TreeNode>();
+                if(step == 0)
                 {
-                    for(TreeNode rightTree : resultList[i - j - 1])
+                    dp[i][i].add(new TreeNode(i));
+                    continue;
+                }
+
+                for(int root = i; root <= i + step; root++)
+                {
+                    if(root == i)
                     {
-                        TreeNode root = new TreeNode(j + 1);
-                        root.left = leftTree;
-                        root.right = helper(rightTree, j + 1);
-                        resultList[i].add(root);
+                        for(TreeNode node : dp[root + 1][i + step])
+                        {
+                            TreeNode rootNode = new TreeNode(root);
+                            rootNode.right = node;
+                            dp[i][i + step].add(rootNode);
+                        }
+                    }
+                    else if(root == i + step)
+                    {
+                        for(TreeNode node : dp[i][root - 1])
+                        {
+                            TreeNode rootNode = new TreeNode(root);
+                            rootNode.left = node;
+                            dp[i][i + step].add(rootNode);
+                        }
+                    }
+                    else
+                    {
+                        for(TreeNode left : dp[i][root - 1])
+                        {
+                            for(TreeNode right : dp[root + 1][i + step])
+                            {
+                                TreeNode rootNode = new TreeNode(root);
+                                rootNode.left = left;
+                                rootNode.right = right;
+                                dp[i][i + step].add(rootNode);
+                            }
+                        }
                     }
                 }
             }
         }
-        return resultList[n];
+
+        return dp[1][n];
     }
 }
