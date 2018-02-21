@@ -1,21 +1,19 @@
-public class Solution
+class Solution
 {
-    public int maxProduct(int[] nums)
+    public int maxProduct(int[] nums) 
     {
-        if(nums.length == 0)
-            return 0;
-
-        int max = nums[0], min = nums[0], result = nums[0];
+        int[] dpPositive = new int[nums.length + 1];//from 0-n max product = max(nums[i], maxProduct[i-1]*nums[i], minProduct[i-1]*nums[i])
+        int[] dpNegative = new int[nums.length + 1];//from 0-n min product = min(nums[i], maxProduct[i-1]*nums[i], minProduct[i-1]*nums[i])
+        dpPositive[0] = dpNegative[0] = nums[0];
+        int result = nums[0];
         for(int i = 1; i < nums.length; i++)
         {
-            int temp = max;
-            max = Math.max(Math.max(max * nums[i], min * nums[i]),
-                    nums[i]);
-            min = Math.min(Math.min(temp * nums[i], min * nums[i]),
-                    nums[i]);
-            if(max > result)
-                result = max;
+            dpPositive[i] = Math.max(nums[i], Math.max(dpPositive[i - 1] * nums[i], dpNegative[i - 1] * nums[i]));
+            dpNegative[i] = Math.min(nums[i], Math.min(dpPositive[i - 1] * nums[i], dpNegative[i - 1] * nums[i]));
+            if(dpPositive[i] > result)
+                result = dpPositive[i];
         }
+        
         return result;
     }
 }
