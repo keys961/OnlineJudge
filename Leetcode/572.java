@@ -1,34 +1,39 @@
-class Solution 
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+class Solution
 {
-    private boolean isSameTree(TreeNode a, TreeNode b)
+    private boolean isSame(TreeNode t1, TreeNode t2)
     {
-        if(a == null && b == null)
+        if(t1 == null && t2 == null)
             return true;
-        
-        if(a == null || b == null)
+        if(t1 == null || t2 == null)
             return false;
         
-        if(a.val != b.val)
+        if(t1.val != t2.val)
             return false;
-        
-        return isSameTree(a.left, b.left) && isSameTree(a.right, b.right);
+        return isSame(t1.left, t2.left) && isSame(t1.right, t2.right);
     }
-
-    public boolean isSubtree(TreeNode s, TreeNode t)
+    
+    public boolean isSubtree(TreeNode s, TreeNode t) 
     {
+        if(s == null && t == null)
+            return true;
         if(s == null)
             return false;
-        if(isSameTree(s, t))
+        if(t == null)
             return true;
         
-        boolean left = false;
-        boolean right = false;
+        boolean status = false;
+        if(s.val == t.val)
+            status = isSame(s, t);
         
-        //if(s.left != null)
-            left = isSubtree(s.left, t);
-       // if(s.right != null)
-            right = isSubtree(s.right, t);
-        
-        return left || right;
+        return status || (isSubtree(s.left, t) || isSubtree(s.right, t));
     }
 }
