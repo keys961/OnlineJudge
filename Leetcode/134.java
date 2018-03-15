@@ -1,27 +1,44 @@
-public class Solution
+class Solution
 {
+//     private boolean helper(int[] gas, int[] cost, int start)
+//     {
+//         int len = gas.length;
+        
+//         int rest = 0;
+//         for(int i = start; ; i = (i + 1) % len)
+//         {
+//             rest += gas[i] - cost[i];
+//             if(rest < 0)
+//                 return false;
+            
+//             if((i + 1) % len == start)
+//                 break;
+//         }
+        
+//         return true;
+//     }
+    
     public int canCompleteCircuit(int[] gas, int[] cost)
     {
-        int n = gas.length;
-        if(n == 0)
-            return -1;
-
-        int start = n - 1;
-        int end = 0;
-        int sum = gas[start] - cost[start];
-        while(start > end)
+        int remain = 0;
+        int total = 0;
+        int index = 0;
+        
+        //like max continuous subarray sum..
+        
+        for(int i = 0; i < gas.length; i++)
         {
-            if(sum >= 0)
+            remain += gas[i] - cost[i]; 
+            total += gas[i] - cost[i];
+            
+            if(remain < 0)
             {
-                sum += gas[end] - cost[end];
-                end++;
+                index = i + 1;
+                remain = 0;
             }
-            else
-            {
-                start--;
-                sum += gas[start] - cost[start];
-            }
+          
         }
-        return sum >= 0 ? start : -1;
+        
+        return total >= 0 ? index : -1;
     }
 }
