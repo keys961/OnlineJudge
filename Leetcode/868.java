@@ -1,14 +1,28 @@
 class Solution 
 {
-    public int[][] transpose(int[][] A)
+    public int binaryGap(int N) 
     {
-        int[][] res = new int[A[0].length][A.length];
-        for(int i = 0; i < A.length; i++)
+        int num = N;
+        int maxLen = 0;
+        int len = -1;
+        while(num > 0)
         {
-            for(int j = 0; j < A[i].length; j++)
-                res[j][i] = A[i][j];
+            if(num % 2 != 0)
+            {
+                if(len == -1)
+                    len = 0;
+                if(len > maxLen)
+                    maxLen = len;
+                len = 1;
+            }
+            else 
+            {
+                if(len != -1)
+                    len++;
+            }
+            num /= 2;
         }
         
-        return res;
+        return maxLen;
     }
 }
